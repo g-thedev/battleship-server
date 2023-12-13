@@ -1,16 +1,15 @@
-import express, { Request, Response } from 'express';
+import app from './app';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-const app = express();
+dotenv.config();
+
 const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/battleship';
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World with TypeScript!');
-});
-
-
-app.get('/data', (req, res) => {
-  res.json({ data: "Hello Gerard" });
-});
+mongoose.connect(MONGO_URI)
+.then(() => console.log('Connected to MongoDB'))
+.catch((error) => { console.log('Could not connect to MongoDB', error) })
 
 
 app.listen(PORT, () => {
