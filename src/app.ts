@@ -5,6 +5,10 @@ import userRoutes from './routes/userRoutes';
 
 const app: Application = express();
 
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Use routes
 app.use('/users', userRoutes);
 
