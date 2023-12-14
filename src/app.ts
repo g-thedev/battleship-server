@@ -5,8 +5,11 @@ import helmet from 'helmet';
 // Import routes
 import userRoutes from './routes/userRoutes';
 
+// Set environment variables
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN
+
 // set cors options
-const whitelist = ['http://localhost:3000', 'http://localhost:5173/'];
+const whitelist = CLIENT_ORIGIN;
 const corsOptions = {
     origin: whitelist,
     optionsSuccessStatus: 200

@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "rimraf dist && npx tsc",
-    "start": "node dist/server.js",
-    "dev": "npm run build && nodemon dist/server.js",
+    "start": "NODE_ENV=production node dist/server.js",
+    "dev": "npm run build && NODE_ENV=development nodemon dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
