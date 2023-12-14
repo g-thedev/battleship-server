@@ -1,4 +1,5 @@
 import User from '../models/userModel';
+import jwt from 'jsonwebtoken';
 
 // Service to get all users
 export const findAllUsers = async () => {
@@ -32,11 +33,30 @@ export const createUser = async (userData: {username: String; email: String; pas
         password: userData.password,
     });
     await newUser.save();
-    return newUser;
+    return generateTokens(newUser._id);;
   } catch (error) {
     throw error;
   }
 };
+
+// Service to login a user
+export const loginUser = async (userData: {username: String; password: String}) => {
+    try {
+        const user = await User.findOne({ username: userData.username });
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        const isMatch = await user.comparePassword(userData.password as string);
+        if (!isMatch) {
+            throw new Error('Incorrect password');
+        }
+
+        return generateTokens(user._id);
+    } catch (error) {
+        throw error;
+    }
+  };
 
 // Service to update a user
 export const updateUser = async (userId: string, updateData: { username?: string; email?: string; password?: string }) => {
@@ -72,3 +92,37 @@ export const deleteUser = async (userId: string) => {
     throw error;
   }
 };
+
+const generateTokens = (userId: string) => {
+    const JWT_SECRET = process.env.JWT_SECRET;
+    const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+    
+    if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
+        throw new Error('JWT_SECRET or JWT_REFRESH_SECRET is not defined');
+      }
+      
+      const accessToken = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '15m' });
+      const refreshToken = jwt.sign({ id: userId }, JWT_REFRESH_SECRET, { expiresIn: '30d' });
+    
+      return { accessToken, refreshToken };
+};
+
+export const refreshToken = async (oldRefreshToken: string) => {
+    const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+  
+    if (!JWT_REFRESH_SECRET) {
+      throw new Error('JWT_REFRESH_SECRET is not defined');
+    }
+  
+    try {
+      const decoded = jwt.verify(oldRefreshToken, JWT_REFRESH_SECRET) as any;
+
+      // Generate new tokens
+      const { accessToken, refreshToken } = generateTokens(decoded.id);
+  
+      return { accessToken, refreshToken };
+
+    } catch (error) {
+      throw new Error('Invalid refresh token');
+    }
+  };
