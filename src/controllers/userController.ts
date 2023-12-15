@@ -42,13 +42,25 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 // Login a user
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const token = await userService.loginUser(req.body);
-        res.status(200).json({ token });
-    } catch (error: any) {
-        if (error.message === 'User not found' || error.message === 'Incorrect password') {
+        // Validate req.body before using it
+        if (!req.body.username || !req.body.password) {
+            res.status(400).json({ message: 'Username and password are required' });
+            return;
+        }
+    
+        const {token, user_id} = await userService.loginUser(req.body);
+        res.status(200).json({ token, user_id });
+    } catch (error: unknown) {
+        // Check if error is an object with a message property before accessing it
+        if (typeof error === 'object' && error !== null && 'message' in error) {
+          if (error.message === 'User not found' || error.message === 'Incorrect password') {
             res.status(401).json({ message: error.message });
+          } else {
+            res.status(500).json({ message: error.message });
+          }
         } else {
-        res.status(500).json({ message: error.message });
+          // If error is not an object with a message property, send a generic error message
+          res.status(500).json({ message: 'An error occurred' });
         }
     }
 };

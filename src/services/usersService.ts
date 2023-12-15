@@ -52,7 +52,7 @@ export const loginUser = async (userData: {username: String; password: String}) 
             throw new Error('Incorrect password');
         }
 
-        return generateTokens(user._id);
+        return { token: generateTokens(user._id), user_id: user._id};
     } catch (error) {
         throw error;
     }
