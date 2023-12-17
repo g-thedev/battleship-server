@@ -107,22 +107,30 @@ const generateTokens = (userId: string) => {
       return { accessToken, refreshToken };
 };
 
-export const refreshToken = async (oldRefreshToken: string) => {
-    const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-  
-    if (!JWT_REFRESH_SECRET) {
-      throw new Error('JWT_REFRESH_SECRET is not defined');
-    }
-  
-    try {
-      const decoded = jwt.verify(oldRefreshToken, JWT_REFRESH_SECRET) as any;
+export const refreshToken = async (tokenString: string) => {
 
-      // Generate new tokens
-      const { accessToken, refreshToken } = generateTokens(decoded.id);
-  
-      return { accessToken, refreshToken };
+  const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
-    } catch (error) {
-      throw new Error('Invalid refresh token');
-    }
-  };
+  if (!JWT_REFRESH_SECRET) {
+    throw new Error('JWT_REFRESH_SECRET is not defined');
+  }
+
+  let token;
+  try {
+    // Parse the token string to an object
+    token = JSON.parse(tokenString);
+  } catch (parseError) {
+    throw new Error('Error parsing token');
+  }
+
+  try {
+    const decoded = jwt.verify(token.refresh, JWT_REFRESH_SECRET) as any;
+
+    // Generate new tokens
+    const { accessToken, refreshToken } = generateTokens(decoded.id);
+    return { accessToken, refreshToken };
+
+  } catch (error) {
+    throw new Error('Invalid refresh token');
+  }
+};

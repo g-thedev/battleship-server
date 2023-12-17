@@ -68,8 +68,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 // refresh token
 export const refreshToken = async (req: Request, res: Response): Promise<void> => {
     try {
-        const oldRefreshToken: string = req.headers['x-refresh-token'] as string;
-        const token = await userService.refreshToken(oldRefreshToken);
+        const refresh = req.headers['x-refresh-token'] as string;
+        const token = await userService.refreshToken(refresh);
         res.status(200).json({ token });
     } catch (error: any) {
         if (error.message === 'User not found' || error.message === 'Incorrect password') {
