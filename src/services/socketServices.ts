@@ -57,6 +57,44 @@ export const setupWebSocket = (httpServer: any) => {
       }
     });
 
+    socket.on('accept-challenge', async (data) => {
+      console.log('accept-challenge', data);
+      const { challengedUserId, challengerUserId } = data;
+    
+      // Check if both the challenger and the challenged user are in the lobby
+      if (lobbyUsers.hasOwnProperty(challengerUserId) && lobbyUsers.hasOwnProperty(challengedUserId)) {
+        const challengerUserSocketId = userToSocketIdMap[challengerUserId];
+        const challengedUserSocketId = userToSocketIdMap[challengedUserId];
+        console.log('challengerUserSocketId', challengerUserSocketId);
+        console.log('challengedUserSocketId', challengedUserSocketId);
+    
+        // Ensure that both users have valid socket IDs
+        if (challengerUserSocketId && challengedUserSocketId) {
+          console.log(`Challenge accepted by ${challengedUserId}, notifying ${challengerUserId}`);
+    
+          // Notify the challenger that the challenge was accepted
+          io.to(challengerUserSocketId).emit('challenge-accepted', {
+            challengedUserId,
+            challengedUsername: lobbyUsers[challengedUserId].username
+          });
+    
+          // Create a new room for the game
+          const roomName = `room-${challengerUserId}-${challengedUserId}`;
+          // Join both the challenger and the challenged user to the room
+          io.sockets.sockets.get(challengerUserSocketId)?.join(roomName);
+          io.sockets.sockets.get(challengedUserSocketId)?.join(roomName);
+    
+          // Notify both users about the room creation
+          io.to(roomName).emit('room-created', roomName);
+        } else {
+          console.log(`One of the users does not have a valid socket ID`);
+        }
+      } else {
+        console.log('One of the users is not found in the lobby');
+      }
+    });
+    
+
     socket.on('disconnect', () => {
       if (socket.user?.id) {
         console.log(`user ${socket.user.id} disconnected`);
