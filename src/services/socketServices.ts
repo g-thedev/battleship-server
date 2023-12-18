@@ -58,15 +58,12 @@ export const setupWebSocket = (httpServer: any) => {
     });
 
     socket.on('accept_challenge', async (data) => {
-      console.log('accept_challenge', data);
       const { challengedUserId, challengerUserId } = data;
     
       // Check if both the challenger and the challenged user are in the lobby
       if (lobbyUsers.hasOwnProperty(challengerUserId) && lobbyUsers.hasOwnProperty(challengedUserId)) {
         const challengerUserSocketId = userToSocketIdMap[challengerUserId];
         const challengedUserSocketId = userToSocketIdMap[challengedUserId];
-        console.log('challengerUserSocketId', challengerUserSocketId);
-        console.log('challengedUserSocketId', challengedUserSocketId);
     
         // Ensure that both users have valid socket IDs
         if (challengerUserSocketId && challengedUserSocketId) {
