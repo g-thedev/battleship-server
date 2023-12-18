@@ -57,8 +57,8 @@ export const setupWebSocket = (httpServer: any) => {
       }
     });
 
-    socket.on('accept-challenge', async (data) => {
-      console.log('accept-challenge', data);
+    socket.on('accept_challenge', async (data) => {
+      console.log('accept_challenge', data);
       const { challengedUserId, challengerUserId } = data;
     
       // Check if both the challenger and the challenged user are in the lobby
@@ -73,7 +73,7 @@ export const setupWebSocket = (httpServer: any) => {
           console.log(`Challenge accepted by ${challengedUserId}, notifying ${challengerUserId}`);
     
           // Notify the challenger that the challenge was accepted
-          io.to(challengerUserSocketId).emit('challenge-accepted', {
+          io.to(challengerUserSocketId).emit('challenge_accepted', {
             challengedUserId,
             challengedUsername: lobbyUsers[challengedUserId].username
           });
