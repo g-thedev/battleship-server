@@ -37,9 +37,9 @@ export const setupWebSocket = (httpServer: any) => {
       }
     }
 
-    io.emit('lobbyUpdate', lobbyUsers);
+    io.emit('update_lobby', lobbyUsers);
 
-    socket.on('challenge-request', async (data) => {
+    socket.on('request_challenge', async (data) => {
       const { challengedUserId, challengerUserId } = data;
       
       if (lobbyUsers.hasOwnProperty(challengedUserId)) {
@@ -47,7 +47,7 @@ export const setupWebSocket = (httpServer: any) => {
         
         if (challengedUserSocketId) {
           console.log(`Sending challenge to ${challengedUserId}`);
-          io.to(challengedUserSocketId).emit('challenge-received', {
+          io.to(challengedUserSocketId).emit('challenge_received', {
             challengerUserId,
             challengerUsername: lobbyUsers[challengerUserId].username
           });
