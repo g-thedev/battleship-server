@@ -76,13 +76,20 @@ export const setupWebSocket = (httpServer: any) => {
           });
     
           // Create a new room for the game
-          const roomName = `room-${challengerUserId}-${challengedUserId}`;
+          const roomId = `room-${challengerUserId}-${challengedUserId}`;
           // Join both the challenger and the challenged user to the room
-          io.sockets.sockets.get(challengerUserSocketId)?.join(roomName);
-          io.sockets.sockets.get(challengedUserSocketId)?.join(roomName);
+          io.sockets.sockets.get(challengerUserSocketId)?.join(roomId);
+          io.sockets.sockets.get(challengedUserSocketId)?.join(roomId);
     
           // Notify both users about the room creation
-          io.to(roomName).emit('room-created', roomName);
+          io.to(roomId).emit('room_ready', { roomId });
+    
+          // Remove users from the lobbyUsers object
+          delete lobbyUsers[challengerUserId];
+          delete lobbyUsers[challengedUserId];
+    
+          // Update the lobby for all users
+          io.emit('update_lobby', lobbyUsers);
         } else {
           console.log(`One of the users does not have a valid socket ID`);
         }
@@ -90,6 +97,7 @@ export const setupWebSocket = (httpServer: any) => {
         console.log('One of the users is not found in the lobby');
       }
     });
+    
     
 
     socket.on('disconnect', () => {
