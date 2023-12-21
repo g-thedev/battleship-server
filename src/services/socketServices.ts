@@ -23,22 +23,27 @@ export const setupWebSocket = (httpServer: any) => {
 
   io.on('connection', async (socket) => {
     if (socket.user?.id) {
-      console.log(`user ${socket.user.id} connected`);
-      
       // Add the user's socket ID to the mapping
       userToSocketIdMap[socket.user.id] = socket.id;
+    }
+
+    socket.on('join_pvp_lobby', async (data) => {
+      console.log('join_lobby event received');
+
+      const { userId } = data;
 
       try {
-        const user = await findUserById(socket.user.id);
+        const user = await findUserById(userId);
         if (user) {
-          lobbyUsers[socket.user.id] = { id: user.id, username: user.username, socketId: socket.id };
+          lobbyUsers[userId] = { id: user.id, username: user.username, socketId: socket.id };
         }
       } catch (error) {
         console.error('Error fetching user from database:', error);
       }
-    }
 
-    io.emit('update_lobby', lobbyUsers);
+      io.emit('update_lobby', lobbyUsers);
+    });
+
 
     socket.on('request_challenge', async (data) => {
       const { challengedUserId, challengerUserId } = data;
