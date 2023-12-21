@@ -1,7 +1,8 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { attachAuthenticationMiddleware } from '../middleware/socketMiddleware';
 import { findUserById } from './usersService';
-import { getGameState, createGame } from './gameManager';
+import { getGameState, createGame, gameStates } from './gameManager';
+import { get } from 'http';
 
 export const setupWebSocket = (httpServer: any) => {
   const CLIENT_URL = process.env.CLIENT_ORIGIN;
@@ -97,7 +98,38 @@ export const setupWebSocket = (httpServer: any) => {
       }
     });
     
-    
+  socket.on('player_ready', (data) => {
+    const { playerId, roomId, ships } = data;
+    console.log(ships)
+    const gameState = getGameState(roomId);
+
+    if (gameState) {
+      gameState.playerReady(playerId);
+      console.log(`Player ${playerId} is ready in room ${roomId}`);
+
+      gameState.updateBoard(playerId, undefined, ships);
+
+      // Notify the room that this player is ready
+      io.to(roomId).emit('opponent_ready', { playerId });
+
+      // Check if all players are ready
+      if (gameState.allPlayersReady()) {
+        // Emit an event to signal both players to move to the game room
+        io.to(roomId).emit('all_players_ready', { roomId });
+      }
+    }
+  });
+
+  socket.on('reset_ships', (data) => {
+    const { playerId, roomId } = data;
+    const gameState = getGameState(roomId);
+
+    if (gameState) {
+      gameState.updateBoard(playerId, undefined, {});
+      console.log(getGameState(roomId)?.playerBoards[playerId])
+      io.to(roomId).emit('opponent_reset', { playerId });
+    }
+  });
 
     socket.on('disconnect', () => {
       if (socket.user?.id) {
