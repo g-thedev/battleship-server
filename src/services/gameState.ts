@@ -60,5 +60,14 @@ export class GameState {
     allPlayersReady(): boolean {
         return this.readyPlayers.size === 2;
     }
+
+    getOpponent(playerId: string): string {
+        return this.players.filter((player) => player !== playerId)[0];
+    }
+
+    removePlayer(playerId: string) {
+        this.players = this.players.filter((player) => player !== playerId);
+        delete this.playerBoards[playerId];
+    }
 }
 

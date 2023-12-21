@@ -1,8 +1,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { attachAuthenticationMiddleware } from '../middleware/socketMiddleware';
 import { findUserById } from './usersService';
-import { getGameState, createGame, gameStates } from './gameManager';
-import { get } from 'http';
+import { getGameState, createGame, deleteGameState, gameStates } from './gameManager';
 
 export const setupWebSocket = (httpServer: any) => {
   const CLIENT_URL = process.env.CLIENT_ORIGIN;
@@ -129,6 +128,41 @@ export const setupWebSocket = (httpServer: any) => {
       console.log(getGameState(roomId)?.playerBoards[playerId])
       io.to(roomId).emit('opponent_reset', { playerId });
     }
+  });
+
+  socket.on('leave_game', (data) => {
+    console.log('leave_game event received');
+    const { roomId, playerId, currentRoom } = data;
+    console.log(roomId, playerId, currentRoom)
+    const gameState = getGameState(roomId);
+    const opponent = gameState?.getOpponent(playerId);
+    const opponentSocketId = opponent ? userToSocketIdMap[opponent] : undefined;
+    console.log(gameState)
+
+    if (gameState) {
+      // Remove the player from the game state
+      gameState.removePlayer(playerId);
+
+      // Remove the player from the room
+      if (opponentSocketId) {
+        io.to(opponentSocketId).emit('opponent_left', { opponent });
+      }
+
+      // If the opponent is still in the room, notify them that they won
+      if (opponent && currentRoom === 'game-room') {
+        io.to(roomId).emit('game_over', { winner: opponent });
+      } else {
+        console.log(getGameState(roomId))
+        io.to(roomId).emit('game_cancelled', { winner: 'No winner' });
+      }
+
+      // Delete the game state if both players have left
+      if (gameState.players.length === 0) {
+        deleteGameState(roomId);
+        console.log(gameStates)
+      }
+    }
+    
   });
 
     socket.on('disconnect', () => {
