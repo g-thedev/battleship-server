@@ -1,6 +1,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { attachAuthenticationMiddleware } from '../middleware/socketMiddleware';
 import { findUserById } from './usersService';
+import { getGameState, createGame } from './gameManager';
 
 export const setupWebSocket = (httpServer: any) => {
   const CLIENT_URL = process.env.CLIENT_ORIGIN;
@@ -69,14 +70,12 @@ export const setupWebSocket = (httpServer: any) => {
         if (challengerUserSocketId && challengedUserSocketId) {
           console.log(`Challenge accepted by ${challengedUserId}, notifying ${challengerUserId}`);
     
-          // Notify the challenger that the challenge was accepted
-          io.to(challengerUserSocketId).emit('challenge_accepted', {
-            challengedUserId,
-            challengedUsername: lobbyUsers[challengedUserId].username
-          });
-    
           // Create a new room for the game
           const roomId = `room-${challengerUserId}-${challengedUserId}`;
+          
+          // Initialize or update the game state for this room
+          createGame(roomId, [challengerUserId, challengedUserId]);
+    
           // Join both the challenger and the challenged user to the room
           io.sockets.sockets.get(challengerUserSocketId)?.join(roomId);
           io.sockets.sockets.get(challengedUserSocketId)?.join(roomId);
