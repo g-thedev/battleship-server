@@ -28,8 +28,6 @@ export const setupWebSocket = (httpServer: any) => {
     }
 
     socket.on('join_pvp_lobby', async (data) => {
-      console.log('join_lobby event received');
-
       const { userId } = data;
 
       try {
