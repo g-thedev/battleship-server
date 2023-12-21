@@ -28,15 +28,15 @@ export class GameState {
         this.playerBoards[players[1]] = { misses: [], ships: {} };
     }
 
-    updateBoard(player: string, move?: string, ships?: any) {
+    updateBoard(playerId: string, move?: string, ships?: any) {
         // Update the game board based on a player's move
         if (ships) {
-            this.playerBoards[player].ships = ships;
+            this.playerBoards[playerId].ships = ships;
         }
 
         if (move) {
-            if (!this.playerBoards[player].misses.includes(move)) {
-                this.playerBoards[player].misses.push(move);
+            if (!this.playerBoards[playerId].misses.includes(move)) {
+                this.playerBoards[playerId].misses.push(move);
             }
         }
     }
