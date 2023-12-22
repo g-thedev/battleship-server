@@ -52,6 +52,20 @@ export class GameState {
         return false;
     }
 
+    checkIfSunk(player: string, move: string) {
+        // Check if a move sinks a ship
+        let enemyBoard = this.playerBoards[player].ships;
+        for (let ship in enemyBoard) {
+            if (enemyBoard[ship].includes(move)) {
+                enemyBoard[ship] = enemyBoard[ship].filter((square: string) => square !== move);
+                if (enemyBoard[ship].length === 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
     playerReady(playerId: string) {
         this.readyPlayers.add(playerId);
@@ -68,6 +82,20 @@ export class GameState {
     removePlayer(playerId: string) {
         this.players = this.players.filter((player) => player !== playerId);
         delete this.playerBoards[playerId];
+    }
+
+    chooseRandomPlayer(): string {
+        return this.players[Math.floor(Math.random() * this.players.length)];
+    }
+
+    switchPlayerTurn() {
+        if (this.currentTurn !== null) {
+            this.currentTurn = this.getOpponent(this.currentTurn);
+        } 
+    }
+
+    getCurrentTurn(): string | null {
+        return this.currentTurn;
     }
 }
 
