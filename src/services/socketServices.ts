@@ -117,7 +117,9 @@ export const setupWebSocket = (httpServer: any) => {
       // Check if all players are ready
       if (gameState.allPlayersReady()) {
         // Emit an event to signal both players to move to the game room
-        io.to(roomId).emit('all_players_ready', { roomId });
+        gameState.currentTurn = gameState.chooseRandomPlayer();
+        let currentPlayerTurn = gameState.currentTurn;
+        io.to(roomId).emit('all_players_ready', { roomId, currentPlayerTurn });
       }
     }
   });
@@ -130,6 +132,39 @@ export const setupWebSocket = (httpServer: any) => {
       gameState.updateBoard(playerId, undefined, {});
       console.log(getGameState(roomId)?.playerBoards[playerId])
       io.to(roomId).emit('opponent_reset', { playerId });
+    }
+  });
+
+  socket.on('shot_called', (data) => {
+    console.log('shot_called event received');
+    console.log(data)
+    const { square, roomId, currentPlayerId } = data;
+    const gameState = getGameState(roomId);
+
+
+    if (gameState && square && currentPlayerId !== undefined) {
+      const opponent = gameState.getOpponent(currentPlayerId);
+
+      if (gameState.checkIfHit(opponent, square)) {
+        if(gameState.checkIfSunk(opponent, square)) {
+          console.log('ship sunk')  
+          gameState.switchPlayerTurn();
+          let currentPlayerTurn = gameState.currentTurn;
+          io.to(roomId).emit('ship_sunk', { square, currentPlayerTurn });
+
+        } else {
+          console.log('shot hit')
+          gameState.switchPlayerTurn();
+          let currentPlayerTurn = gameState.currentTurn;
+          io.to(roomId).emit('shot_hit', { square, currentPlayerTurn });
+        }
+      } else {
+        console.log('shot miss')  
+        gameState.updateBoard(opponent, square)
+        gameState.switchPlayerTurn();
+        let currentPlayerTurn = gameState.currentTurn;
+        io.to(roomId).emit('shot_miss', { square, currentPlayerTurn });
+      }
     }
   });
 
