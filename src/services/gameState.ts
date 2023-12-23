@@ -1,12 +1,13 @@
 interface PlayerBoard {
-    misses: any[]; // Replace 'any' with a more specific type if possible
-    ships: Record<string, any>; // Again, use a more specific type if you can
+    misses: string[];
+    hits: string[];
+    ships: Record<string, any>;
 }
 
 export class GameState {
-    roomId: string | null; // Room ID
-    players: string[]; // List of players in the game
-    playerBoards: Record<string, PlayerBoard>; // Game board or similar structure
+    roomId: string | null;
+    players: string[]; 
+    playerBoards: Record<string, PlayerBoard>; 
     currentTurn: string | null;
     readyPlayers: Set<string>; 
 
@@ -24,8 +25,8 @@ export class GameState {
         this.roomId = roomId;
         this.players = players;
         this.playerBoards = {};
-        this.playerBoards[players[0]] = { misses: [], ships: {} };
-        this.playerBoards[players[1]] = { misses: [], ships: {} };
+        this.playerBoards[players[0]] = { misses: [], hits: [], ships: {} };
+        this.playerBoards[players[1]] = { misses: [], hits: [], ships: {} };
     }
 
     updateBoard(playerId: string, move?: string, ships?: any) {
@@ -97,5 +98,17 @@ export class GameState {
     getCurrentTurn(): string | null {
         return this.currentTurn;
     }
+
+    checkIfAllShipsSunk(playerId: string) {
+        let enemyBoard = this.playerBoards[playerId].ships;
+        for (let ship in enemyBoard) {
+            if (enemyBoard[ship].length > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 }
 
