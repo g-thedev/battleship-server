@@ -184,7 +184,7 @@ export const setupWebSocket = (httpServer: any) => {
     }
   });
 
-  socket.on('leave_game', (data) => {
+  socket.on('leave_game', async (data) => {
     console.log('leave_game event received');
     const { roomId, playerId, currentRoom } = data;
     console.log(roomId, playerId, currentRoom)
@@ -203,8 +203,18 @@ export const setupWebSocket = (httpServer: any) => {
       }
 
       // If the opponent is still in the room, notify them that they won
-      if (opponent && currentRoom === 'game-room') {
-        io.to(roomId).emit('game_over', { winner: opponent });
+      if (opponent && currentRoom === '/game-room') {
+        let username;
+        try {
+          const user = await findUserById(opponent);
+          if (user) {
+            username = user.username;
+          }
+        } catch (error) {
+          console.error('Error fetching user from database:', error);
+        }
+
+        io.to(roomId).emit('game_over', { winner: username, winnerId: opponent, message: 'Opponent left - ' });
       } else {
         console.log(getGameState(roomId))
         io.to(roomId).emit('game_cancelled', { winner: 'No winner' });
