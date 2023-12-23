@@ -100,10 +100,12 @@ export const setupWebSocket = (httpServer: any) => {
       }
     });
     
-  socket.on('player_ready', (data) => {
+  socket.on('player_ready', async (data) => {
     const { playerId, roomId, ships } = data;
     console.log(ships)
     const gameState = getGameState(roomId);
+
+    let username;
 
     if (gameState) {
       gameState.playerReady(playerId);
@@ -112,7 +114,20 @@ export const setupWebSocket = (httpServer: any) => {
       gameState.updateBoard(playerId, undefined, ships);
 
       // Notify the room that this player is ready
-      io.to(roomId).emit('opponent_ready', { playerId });
+      try {
+        const user = await findUserById(playerId);
+        if (user) {
+         username = user.username;
+        }
+      } catch (error) {
+        console.error('Error fetching user from database:', error);
+      }
+
+      // get opponent socket id
+      const opponent = gameState.getOpponent(playerId);
+      const opponentSocketId = opponent ? userToSocketIdMap[opponent]! : undefined!;
+
+      io.to(opponentSocketId).emit('opponent_ready', { username });
 
       // Check if all players are ready
       if (gameState.allPlayersReady()) {
@@ -190,17 +205,11 @@ export const setupWebSocket = (httpServer: any) => {
     console.log(roomId, playerId, currentRoom)
     const gameState = getGameState(roomId);
     const opponent = gameState?.getOpponent(playerId);
-    const opponentSocketId = opponent ? userToSocketIdMap[opponent] : undefined;
-    console.log(gameState)
+    const opponentSocketId = opponent ? userToSocketIdMap[opponent]! : undefined!;
 
     if (gameState) {
       // Remove the player from the game state
       gameState.removePlayer(playerId);
-
-      // Remove the player from the room
-      if (opponentSocketId) {
-        io.to(opponentSocketId).emit('opponent_left', { opponent });
-      }
 
       // If the opponent is still in the room, notify them that they won
       if (opponent && currentRoom === '/game-room') {
@@ -216,8 +225,7 @@ export const setupWebSocket = (httpServer: any) => {
 
         io.to(roomId).emit('game_over', { winner: username, winnerId: opponent, message: 'Opponent left - ' });
       } else {
-        console.log(getGameState(roomId))
-        io.to(roomId).emit('game_cancelled', { winner: 'No winner' });
+        io.to(opponentSocketId).emit('game_cancelled', { message: 'Opponent left before the game started - No winner' });
       }
 
       // Delete the game state if both players have left
