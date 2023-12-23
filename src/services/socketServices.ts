@@ -135,7 +135,7 @@ export const setupWebSocket = (httpServer: any) => {
     }
   });
 
-  socket.on('shot_called', (data) => {
+  socket.on('shot_called', async (data) => {
     console.log('shot_called event received');
     console.log(data)
     const { square, roomId, currentPlayerId } = data;
@@ -147,11 +147,27 @@ export const setupWebSocket = (httpServer: any) => {
 
       if (gameState.checkIfHit(opponent, square)) {
         if(gameState.checkIfSunk(opponent, square)) {
-          console.log('ship sunk')  
-          gameState.switchPlayerTurn();
-          let currentPlayerTurn = gameState.currentTurn;
-          io.to(roomId).emit('ship_sunk', { square, currentPlayerTurn });
+          if(gameState.checkIfAllShipsSunk(opponent)) {
+            console.log('game over ' + currentPlayerId)
+            let username;
+            try {
+              const user = await findUserById(currentPlayerId);
+              if (user) {
+               username = user.username;
+              }
+            } catch (error) {
+              console.error('Error fetching user from database:', error);
+            }
 
+            io.to(roomId).emit('game_over', { winner: username, winnerId: currentPlayerId, message: '' });
+            io.to(roomId).emit('shot_hit', { square, currentPlayerTurn: '' });
+            deleteGameState(roomId);
+          } else {
+              console.log('ship sunk')  
+              gameState.switchPlayerTurn();
+              let currentPlayerTurn = gameState.currentTurn;
+              io.to(roomId).emit('ship_sunk', { square, currentPlayerTurn });
+          }
         } else {
           console.log('shot hit')
           gameState.switchPlayerTurn();
