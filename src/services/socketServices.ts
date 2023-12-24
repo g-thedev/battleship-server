@@ -33,12 +33,12 @@ export const setupWebSocket = (httpServer: any) => {
       try {
         const user = await findUserById(userId);
         if (user) {
-          lobbyUsers[userId] = { id: user.id, username: user.username, socketId: socket.id };
+          lobbyUsers[userId] = { id: user.id, username: user.username, socketId: socket.id, inPendingChallenge: false};
         }
       } catch (error) {
         console.error('Error fetching user from database:', error);
       }
-
+      console.log(lobbyUsers)
       io.emit('update_lobby', lobbyUsers);
     });
 
@@ -55,6 +55,11 @@ export const setupWebSocket = (httpServer: any) => {
             challengerUserId,
             challengerUsername: lobbyUsers[challengerUserId].username
           });
+
+          lobbyUsers[challengedUserId].inPendingChallenge = true;
+          lobbyUsers[challengerUserId].inPendingChallenge = true;
+
+          io.emit('update_lobby', lobbyUsers);
         }
       } else {
         console.log('Challenged user not found in lobby');
@@ -99,6 +104,17 @@ export const setupWebSocket = (httpServer: any) => {
         console.log('One of the users is not found in the lobby');
       }
     });
+
+    socket.on('reject_challenge', (data) => {
+      const { challengedUserId, challengerUserId } = data;
+      
+      lobbyUsers[challengedUserId].inPendingChallenge = false;
+      lobbyUsers[challengerUserId].inPendingChallenge = false;
+
+      io.emit('update_lobby', lobbyUsers);
+      io.to(userToSocketIdMap[challengerUserId]).emit('challenge_rejected', { challengedUserId, message: 'Challenge rejected' });
+    });
+
     
   socket.on('player_ready', async (data) => {
     const { playerId, roomId, ships } = data;
