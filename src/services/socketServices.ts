@@ -21,7 +21,7 @@ export const setupWebSocket = (httpServer: any) => {
   const lobbyUsers: { [key: string]: any } = {};
   const userToSocketIdMap: { [userId: string]: string } = {}; // Map of user ID to socket ID
 
-  io.on('connection', async (socket) => {
+  io.on('connection', async (socket): Promise<void> => {
     if (socket.user?.id) {
       // Add the user's socket ID to the mapping
       userToSocketIdMap[socket.user.id] = socket.id;
