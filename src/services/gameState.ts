@@ -68,7 +68,7 @@ export class GameState {
     }
 
 
-    playerReady(playerId: string) {
+    setPlayerReady(playerId: string) {
         this.readyPlayers.add(playerId);
     }
 
@@ -109,6 +109,9 @@ export class GameState {
         return true;
     }
 
+    checkIfPlayerReady(playerId: string) {
+        return Object.keys(this.playerBoards[playerId].ships).length === 5;
+    }
 
 }
 

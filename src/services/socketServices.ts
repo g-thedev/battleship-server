@@ -108,7 +108,7 @@ export const setupWebSocket = (httpServer: any) => {
     let username;
 
     if (gameState) {
-      gameState.playerReady(playerId);
+      gameState.setPlayerReady(playerId);
       console.log(`Player ${playerId} is ready in room ${roomId}`);
 
       gameState.updateBoard(playerId, undefined, ships);
@@ -142,11 +142,14 @@ export const setupWebSocket = (httpServer: any) => {
   socket.on('reset_ships', (data) => {
     const { playerId, roomId } = data;
     const gameState = getGameState(roomId);
+    const opponent = gameState?.getOpponent(playerId);
+    const opponentSocketId = opponent ? userToSocketIdMap[opponent]! : undefined!;
 
-    if (gameState) {
+
+    if (gameState && gameState?.checkIfPlayerReady(playerId)) {
       gameState.updateBoard(playerId, undefined, {});
       console.log(getGameState(roomId)?.playerBoards[playerId])
-      io.to(roomId).emit('opponent_reset', { playerId });
+      io.to(opponentSocketId).emit('opponent_reset', { playerId });
     }
   });
 
@@ -233,6 +236,7 @@ export const setupWebSocket = (httpServer: any) => {
         deleteGameState(roomId);
         console.log(gameStates)
       }
+      console.log("Game state after player left", gameStates)
     }
     
   });
