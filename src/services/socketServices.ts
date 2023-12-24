@@ -47,24 +47,37 @@ export const setupWebSocket = (httpServer: any) => {
       const { challengedUserId, challengerUserId } = data;
       
       if (lobbyUsers.hasOwnProperty(challengedUserId)) {
-        const challengedUserSocketId = userToSocketIdMap[challengedUserId];
-        
-        if (challengedUserSocketId) {
-          console.log(`Sending challenge to ${challengedUserId}`);
-          io.to(challengedUserSocketId).emit('challenge_received', {
-            challengerUserId,
-            challengerUsername: lobbyUsers[challengerUserId].username
-          });
-
-          lobbyUsers[challengedUserId].inPendingChallenge = true;
-          lobbyUsers[challengerUserId].inPendingChallenge = true;
-
-          io.emit('update_lobby', lobbyUsers);
+        const challengedUser = lobbyUsers[challengedUserId];
+        const challengerUserSocketId = userToSocketIdMap[challengerUserId];
+    
+        // Check if the challenged user is already in a pending challenge
+        if (challengedUser.inPendingChallenge) {
+          if (challengerUserSocketId) {
+            io.to(challengerUserSocketId).emit('challenge_unavailable', {
+              message: 'User is currently unavailable for challenges.'
+            });
+          }
+        } else {
+          const challengedUserSocketId = userToSocketIdMap[challengedUserId];
+          
+          if (challengedUserSocketId) {
+            console.log(`Sending challenge to ${challengedUserId}`);
+            io.to(challengedUserSocketId).emit('challenge_received', {
+              challengerUserId,
+              challengerUsername: lobbyUsers[challengerUserId].username
+            });
+    
+            lobbyUsers[challengedUserId].inPendingChallenge = true;
+            lobbyUsers[challengerUserId].inPendingChallenge = true;
+    
+            io.emit('update_lobby', lobbyUsers);
+          }
         }
       } else {
         console.log('Challenged user not found in lobby');
       }
     });
+    
 
     socket.on('accept_challenge', async (data) => {
       const { challengedUserId, challengerUserId } = data;
