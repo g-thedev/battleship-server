@@ -118,6 +118,17 @@ export const setupWebSocket = (httpServer: any) => {
       }
     });
 
+    socket.on('cancel_challenge', (data) => {
+      const { challengedUserId, challengerUserId } = data;
+     
+      lobbyUsers[challengedUserId].inPendingChallenge = false;
+      lobbyUsers[challengerUserId].inPendingChallenge = false;
+  
+      io.emit('update_lobby', lobbyUsers);
+      io.to(userToSocketIdMap[challengedUserId]).emit('challenge_canceled', { challengerUserId, message: 'Challenger has canceled the challenge request' });
+  });
+  
+
     socket.on('reject_challenge', (data) => {
       const { challengedUserId, challengerUserId } = data;
       
