@@ -1,7 +1,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { attachAuthenticationMiddleware } from '../middleware/socketMiddleware';
 import { findUserById } from './usersService';
-import { getGameState, createGame, deleteGameState, gameStates } from './gameManager';
+import { getGameState, createGame, deleteGameState } from './gameManager';
 
 export const setupWebSocket = (httpServer: any) => {
   const CLIENT_URL = process.env.CLIENT_ORIGIN;
@@ -255,8 +255,35 @@ export const setupWebSocket = (httpServer: any) => {
 
         // Emit events or send messages as needed to synchronize game state
         // For example, sending current game state to the reconnected user
+        const userSocketId = userToSocketIdMap[userId];
+        io.to(userSocketId).emit('rejoined_game_room', { currentTurn: gameState.currentTurn });
     }
 });
+
+  socket.on('get_current_users_board', async (data) => {
+    const { roomId, playerId } = data;
+    const gameState = getGameState(roomId);
+    const userSocketId = userToSocketIdMap[playerId];
+
+    if (gameState) {
+      const playerBoard = gameState.playerBoards[playerId];
+      console.log(playerBoard);
+      io.to(userSocketId).emit('current_users_board', { hits: playerBoard.hits, misses: playerBoard.misses});
+    }
+  });
+
+  socket.on('get_opponents_board', async (data) => {
+    const { roomId, playerId } = data;
+    const gameState = getGameState(roomId);
+    const userSocketId = userToSocketIdMap[playerId];
+
+    if (gameState) {
+      const opponent = gameState.getOpponent(playerId);
+      const opponentBoard = gameState.playerBoards[opponent];
+      console.log(opponentBoard);
+      io.to(userSocketId).emit('opponents_board', { hits: opponentBoard.hits, misses: opponentBoard.misses});
+    }
+  });
 
   socket.on('leave_game', async (data) => {
     const { roomId, playerId, currentRoom } = data;

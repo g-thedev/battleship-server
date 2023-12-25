@@ -47,12 +47,16 @@ export class GameState {
         let enemyBoard = this.playerBoards[player].ships;
         for (let ship in enemyBoard) {
             if (enemyBoard[ship].includes(move)) {
+                this.playerBoards[player].hits.push(move);
                 return true;
             }
         }
         return false;
     }
 
+    // Change this 
+    // Need to separate the check from the update of the array
+    // Maybe move to checkIfHit?
     checkIfSunk(player: string, move: string) {
         // Check if a move sinks a ship
         let enemyBoard = this.playerBoards[player].ships;
