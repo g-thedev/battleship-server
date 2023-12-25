@@ -25,6 +25,7 @@ export const setupWebSocket = (httpServer: any) => {
     if (socket.user?.id) {
       // Add the user's socket ID to the mapping
       userToSocketIdMap[socket.user.id] = socket.id;
+      console.log(userToSocketIdMap)
     }
 
     socket.on('join_pvp_lobby', async (data) => {
@@ -250,6 +251,24 @@ export const setupWebSocket = (httpServer: any) => {
     }
   });
 
+  socket.on('rejoin_game_room', async (data) => {
+    console.log('rejoin_game_room event received');
+    const { userId, roomId } = data;
+    const gameState = getGameState(roomId);
+
+    if (gameState && gameState.hasPlayer(userId)) {
+        // Use the current socket instance to join the room
+        socket.join(roomId);
+        console.log(`User ${userId} rejoined room ${roomId}`);
+
+        // Update the mapping of the user ID to the new socket ID
+        userToSocketIdMap[userId] = socket.id;
+
+        // Emit events or send messages as needed to synchronize game state
+        // For example, sending current game state to the reconnected user
+    }
+});
+
   socket.on('leave_game', async (data) => {
     console.log('leave_game event received');
     const { roomId, playerId, currentRoom } = data;
@@ -292,6 +311,7 @@ export const setupWebSocket = (httpServer: any) => {
     socket.on('disconnect', () => {
       if (socket.user?.id) {
         console.log(`user ${socket.user.id} disconnected`);
+        console.log(gameStates)
         delete lobbyUsers[socket.user.id];
         delete userToSocketIdMap[socket.user.id]; // Remove from user-to-socket mapping
       }

@@ -113,5 +113,8 @@ export class GameState {
         return Object.keys(this.playerBoards[playerId].ships).length === 5;
     }
 
+    hasPlayer(playerId: string) {
+        return this.players.includes(playerId);
+    }
 }
 
