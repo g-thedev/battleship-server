@@ -38,15 +38,12 @@ export const setupWebSocket = (httpServer: any) => {
       } catch (error) {
         console.error('Error fetching user from database:', error);
       }
-      console.log(lobbyUsers)
       io.emit('update_lobby', lobbyUsers);
     });
 
     socket.on('leave_pvp_lobby', async (data) => {
-      console.log('leave_pvp_lobby event received')
       const { userId } = data;
       delete lobbyUsers[userId];
-      console.log(lobbyUsers)
       io.emit('update_lobby', lobbyUsers);
     });
 
