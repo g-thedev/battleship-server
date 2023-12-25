@@ -25,7 +25,6 @@ export const setupWebSocket = (httpServer: any) => {
     if (socket.user?.id) {
       // Add the user's socket ID to the mapping
       userToSocketIdMap[socket.user.id] = socket.id;
-      console.log(userToSocketIdMap)
     }
 
     socket.on('join_pvp_lobby', async (data) => {
@@ -98,8 +97,6 @@ export const setupWebSocket = (httpServer: any) => {
     
         // Ensure that both users have valid socket IDs
         if (challengerUserSocketId && challengedUserSocketId) {
-          console.log(`Challenge accepted by ${challengedUserId}, notifying ${challengerUserId}`);
-    
           // Create a new room for the game
           const roomId = `room-${challengerUserId}-${challengedUserId}`;
           
@@ -151,14 +148,12 @@ export const setupWebSocket = (httpServer: any) => {
     
   socket.on('player_ready', async (data) => {
     const { playerId, roomId, ships } = data;
-    console.log(ships)
     const gameState = getGameState(roomId);
 
     let username;
 
     if (gameState) {
       gameState.setPlayerReady(playerId);
-      console.log(`Player ${playerId} is ready in room ${roomId}`);
 
       gameState.updateBoard(playerId, undefined, ships);
 
@@ -197,14 +192,11 @@ export const setupWebSocket = (httpServer: any) => {
 
     if (gameState && gameState?.checkIfPlayerReady(playerId)) {
       gameState.updateBoard(playerId, undefined, {});
-      console.log(getGameState(roomId)?.playerBoards[playerId])
       io.to(opponentSocketId).emit('opponent_reset', { playerId });
     }
   });
 
   socket.on('shot_called', async (data) => {
-    console.log('shot_called event received');
-    console.log(data)
     const { square, roomId, currentPlayerId } = data;
     const gameState = getGameState(roomId);
 
@@ -230,19 +222,16 @@ export const setupWebSocket = (httpServer: any) => {
             io.to(roomId).emit('shot_hit', { square, currentPlayerTurn: '' });
             deleteGameState(roomId);
           } else {
-              console.log('ship sunk')  
               gameState.switchPlayerTurn();
               let currentPlayerTurn = gameState.currentTurn;
               io.to(roomId).emit('ship_sunk', { square, currentPlayerTurn });
           }
         } else {
-          console.log('shot hit')
           gameState.switchPlayerTurn();
           let currentPlayerTurn = gameState.currentTurn;
           io.to(roomId).emit('shot_hit', { square, currentPlayerTurn });
         }
       } else {
-        console.log('shot miss')  
         gameState.updateBoard(opponent, square)
         gameState.switchPlayerTurn();
         let currentPlayerTurn = gameState.currentTurn;
@@ -270,9 +259,7 @@ export const setupWebSocket = (httpServer: any) => {
 });
 
   socket.on('leave_game', async (data) => {
-    console.log('leave_game event received');
     const { roomId, playerId, currentRoom } = data;
-    console.log(roomId, playerId, currentRoom)
     const gameState = getGameState(roomId);
     const opponent = gameState?.getOpponent(playerId);
     const opponentSocketId = opponent ? userToSocketIdMap[opponent]! : undefined!;
@@ -301,9 +288,7 @@ export const setupWebSocket = (httpServer: any) => {
       // Delete the game state if both players have left
       if (gameState.players.length === 0) {
         deleteGameState(roomId);
-        console.log(gameStates)
       }
-      console.log("Game state after player left", gameStates)
     }
     
   });
@@ -311,7 +296,6 @@ export const setupWebSocket = (httpServer: any) => {
     socket.on('disconnect', () => {
       if (socket.user?.id) {
         console.log(`user ${socket.user.id} disconnected`);
-        console.log(gameStates)
         delete lobbyUsers[socket.user.id];
         delete userToSocketIdMap[socket.user.id]; // Remove from user-to-socket mapping
       }
