@@ -42,6 +42,17 @@ export const setupWebSocket = (httpServer: any) => {
       io.emit('update_lobby', lobbyUsers);
     });
 
+    socket.on('leave_pvp_lobby', async (data) => {
+      console.log('leave_pvp_lobby event received')
+      const { userId } = data;
+      delete lobbyUsers[userId];
+      console.log(lobbyUsers)
+      io.emit('update_lobby', lobbyUsers);
+    });
+
+    socket.on('request_lobby_update', () => {
+      io.emit('update_lobby', lobbyUsers);
+    });
 
     socket.on('request_challenge', async (data) => {
       const { challengedUserId, challengerUserId } = data;
