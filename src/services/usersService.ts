@@ -101,7 +101,7 @@ const generateTokens = (userId: string) => {
         throw new Error('JWT_SECRET or JWT_REFRESH_SECRET is not defined');
       }
       
-      const accessToken = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '15m' });
+      const accessToken = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '4h' });
       const refreshToken = jwt.sign({ id: userId }, JWT_REFRESH_SECRET, { expiresIn: '30d' });
     
       return { accessToken, refreshToken };
