@@ -214,8 +214,9 @@ export const setupWebSocket = (httpServer: any) => {
           let ship = gameState.getSunkShip(opponent);
 
           if(gameState.checkIfAllShipsSunk(opponent)) {
-            console.log('game over ' + currentPlayerId)
             let username;
+            gameState.switchPlayerTurn();
+            let currentPlayerTurn = gameState.currentTurn;
             try {
               const user = await findUserById(currentPlayerId);
               if (user) {
@@ -225,14 +226,14 @@ export const setupWebSocket = (httpServer: any) => {
               console.error('Error fetching user from database:', error);
             }
 
+            io.to(roomId).emit('ship_sunk', { square, currentPlayerTurn, ship });
             io.to(roomId).emit('game_over', { winner: username, winnerId: currentPlayerId, message: '' });
-            io.to(roomId).emit('shot_hit', { square, currentPlayerTurn: '' });
+            
             deleteGameState(roomId);
 
           } else {
               gameState.switchPlayerTurn();
               let currentPlayerTurn = gameState.currentTurn;
-              console.log(ship);
               io.to(roomId).emit('ship_sunk', { square, currentPlayerTurn, ship });
           }
 
@@ -279,7 +280,6 @@ export const setupWebSocket = (httpServer: any) => {
 
     if (gameState) {
       const playerBoard = gameState.playerBoards[playerId];
-      console.log(playerBoard);
       io.to(userSocketId).emit('current_users_board', { hits: playerBoard.hits, misses: playerBoard.misses});
     }
   });
@@ -292,7 +292,6 @@ export const setupWebSocket = (httpServer: any) => {
     if (gameState) {
       const opponent = gameState.getOpponent(playerId);
       const opponentBoard = gameState.playerBoards[opponent];
-      console.log(opponentBoard);
       io.to(userSocketId).emit('opponents_board', { hits: opponentBoard.hits, misses: opponentBoard.misses});
     }
   });
