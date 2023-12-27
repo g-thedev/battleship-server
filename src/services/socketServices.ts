@@ -204,6 +204,11 @@ export const setupWebSocket = (httpServer: any) => {
     if (gameState && square && currentPlayerId !== undefined) {
       const opponent = gameState.getOpponent(currentPlayerId);
 
+      // Check if the move has already been processed
+      if (gameState.isMoveProcessed(currentPlayerId, square)) {
+        return; // Ignore the shot if it has been processed
+      }
+
       if (gameState.checkIfHit(opponent, square)) {
         if(gameState.checkIfSunk(opponent, square)) {
           let ship = gameState.getSunkShip(opponent);
@@ -242,6 +247,8 @@ export const setupWebSocket = (httpServer: any) => {
         let currentPlayerTurn = gameState.currentTurn;
         io.to(roomId).emit('shot_miss', { square, currentPlayerTurn });
       }
+
+      gameState.markMoveAsProcessed(currentPlayerId, square);
     }
   });
 
