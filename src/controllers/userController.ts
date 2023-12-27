@@ -34,8 +34,15 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
         res.status(201).json(newUser);
     } catch (error: any) {
         console.error("Error creating new user:", error);
-
-        res.status(500).json({ message: error.message });
+    
+        // Check if the error is a MongoDB E11000 duplicate key error
+        if (error.code === 11000 && error.message.includes('username')) {
+            // Respond with a more user-friendly message
+            res.status(409).json({ message: "Username is already taken." });
+        } else {
+            // For other types of errors, keep the original response
+            res.status(500).json({ message: error.message });
+        }
     }
 };
 
