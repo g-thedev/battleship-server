@@ -109,6 +109,7 @@ export const setupWebSocket = (httpServer: any) => {
     
           // Notify both users about the room creation
           io.to(roomId).emit('room_ready', { roomId });
+          io.to(roomId).emit('challenge_accepted')
     
           // Remove users from the lobbyUsers object
           delete lobbyUsers[challengerUserId];
