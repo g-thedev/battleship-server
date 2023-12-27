@@ -25,11 +25,10 @@ export const findUserById = async (userId: String) => {
 };
 
 // Service to create a new user
-export const createUser = async (userData: {username: String; email: String; password: String}) => {
+export const createUser = async (userData: {username: String; password: String}) => {
   try {
     const newUser = new User({
         username: userData.username,
-        email: userData.email,
         password: userData.password,
     });
     await newUser.save();
@@ -68,7 +67,6 @@ export const updateUser = async (userId: string, updateData: { username?: string
   
       // Update fields
       if (updateData.username) user.username = updateData.username;
-      if (updateData.email) user.email = updateData.email;
       if (updateData.password) user.password = updateData.password;
   
      
