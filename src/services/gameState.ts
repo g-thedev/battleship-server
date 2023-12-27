@@ -9,7 +9,9 @@ export class GameState {
     players: string[]; 
     playerBoards: Record<string, PlayerBoard>; 
     currentTurn: string | null;
-    readyPlayers: Set<string>; 
+    readyPlayers: Set<string>;
+    processedMoves: Record<string, Set<string>>;
+    
 
     constructor() {
         this.roomId = '';
@@ -17,6 +19,7 @@ export class GameState {
         this.playerBoards = {};
         this.currentTurn = null;
         this.readyPlayers = new Set();
+        this.processedMoves = {};
         // ... other game-specific state properties
     }
 
@@ -27,6 +30,8 @@ export class GameState {
         this.playerBoards = {};
         this.playerBoards[players[0]] = { misses: [], hits: [], ships: {} };
         this.playerBoards[players[1]] = { misses: [], hits: [], ships: {} };
+        this.processedMoves[players[0]] = new Set();
+        this.processedMoves[players[1]] = new Set();
     }
 
     updateBoard(playerId: string, move?: string, ships?: any) {
@@ -128,6 +133,14 @@ export class GameState {
 
     hasPlayer(playerId: string) {
         return this.players.includes(playerId);
+    }
+
+    isMoveProcessed(playerId: string, move: string) {
+        return this.processedMoves[playerId].has(move);
+    }
+
+    markMoveAsProcessed(playerId: string, move: string) {
+        this.processedMoves[playerId].add(move);
     }
 }
 
