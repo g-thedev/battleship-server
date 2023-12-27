@@ -206,6 +206,8 @@ export const setupWebSocket = (httpServer: any) => {
 
       if (gameState.checkIfHit(opponent, square)) {
         if(gameState.checkIfSunk(opponent, square)) {
+          let ship = gameState.getSunkShip(opponent);
+
           if(gameState.checkIfAllShipsSunk(opponent)) {
             console.log('game over ' + currentPlayerId)
             let username;
@@ -221,11 +223,14 @@ export const setupWebSocket = (httpServer: any) => {
             io.to(roomId).emit('game_over', { winner: username, winnerId: currentPlayerId, message: '' });
             io.to(roomId).emit('shot_hit', { square, currentPlayerTurn: '' });
             deleteGameState(roomId);
+
           } else {
               gameState.switchPlayerTurn();
               let currentPlayerTurn = gameState.currentTurn;
-              io.to(roomId).emit('ship_sunk', { square, currentPlayerTurn });
+              console.log(ship);
+              io.to(roomId).emit('ship_sunk', { square, currentPlayerTurn, ship });
           }
+
         } else {
           gameState.switchPlayerTurn();
           let currentPlayerTurn = gameState.currentTurn;
