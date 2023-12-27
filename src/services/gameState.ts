@@ -64,6 +64,9 @@ export class GameState {
             if (enemyBoard[ship].includes(move)) {
                 enemyBoard[ship] = enemyBoard[ship].filter((square: string) => square !== move);
                 if (enemyBoard[ship].length === 0) {
+                    console.log('Sunk ship!');
+                    console.log(enemyBoard);
+                    console.log(ship);
                     return true;
                 }
             }
@@ -71,6 +74,17 @@ export class GameState {
         return false;
     }
 
+    getSunkShip(player: string) {
+        let enemyBoard = this.playerBoards[player].ships;
+        console.log(enemyBoard);
+        for (let ship in enemyBoard) {
+            if (enemyBoard[ship].length === 0) {
+                delete enemyBoard[ship];
+                console.log(ship);
+                return ship;
+            }
+        }
+    }
 
     setPlayerReady(playerId: string) {
         this.readyPlayers.add(playerId);
@@ -105,12 +119,7 @@ export class GameState {
 
     checkIfAllShipsSunk(playerId: string) {
         let enemyBoard = this.playerBoards[playerId].ships;
-        for (let ship in enemyBoard) {
-            if (enemyBoard[ship].length > 0) {
-                return false;
-            }
-        }
-        return true;
+        return Object.keys(enemyBoard).length === 0;
     }
 
     checkIfPlayerReady(playerId: string) {
