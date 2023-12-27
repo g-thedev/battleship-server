@@ -10,8 +10,6 @@ import { setupWebSocket } from './services/socketServices';
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/battleship';
 
-console.log('MONGO_URI', MONGO_URI);
-
 const server = http.createServer(app);
 
 if (!MONGO_URI) {
