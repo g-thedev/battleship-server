@@ -16,8 +16,12 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
 // Get a single user by ID
 export const getUserById = async (req: Request, res: Response): Promise<void> => {
     try {
+        if (req.user && req.user.id !== req.params.id) {
+            res.status(403).json({ message: 'Unauthorized access' });
+        }
+
         const user = await userService.findUserById(req.params.id);
-        res.status(200).json(user);
+        res.status(200).json(user.username);
     } catch (error: any) {
         if (error.message === 'User not found') {
             res.status(404).json({ message: error.message });

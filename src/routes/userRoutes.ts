@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+import { authMiddleware } from '../middleware/authMiddleware';
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser, loginUser, refreshToken } from '../controllers/userController';
 
 const router: Router = express.Router();
@@ -7,7 +8,7 @@ const router: Router = express.Router();
 router.get('/', getAllUsers);
 
 // Route to get a single user by ID
-router.get('/:id', getUserById);
+router.get('/:id', authMiddleware, getUserById);
 
 // Route to create a new user
 router.post('/', createUser);
